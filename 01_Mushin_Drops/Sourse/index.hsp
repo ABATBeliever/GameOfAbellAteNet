@@ -1,0 +1,184 @@
+#include "hsp3dish.as"
+#const gr_ball 1
+#const gr_wall 2
+	name="無心ドロップス    "
+	randomize
+
+	cls 4
+	title name
+	celload "chara.png",3
+	celdiv 3,75,85
+	mmload "se_puyo.wav",0
+	mmload "bgm.wav",1
+
+	high=0
+*demo
+	if score>high : high=score	; 最高得点を更新する
+	objsize 200,60
+	pos 280,400
+	button "ゲーム スタート",*start
+
+*demo_l
+//	mmstop
+	redraw 0
+	gradf ,,,,1,0,128
+	font msgothic,40
+	color 255,255,255
+	pos 250,160
+	mes name
+	pos 140,300
+	if score!=0{mes "結果スコア:["+score+"]pt     "}else{mes "記録がありません      "}
+	font "",16
+	pos 020,770:mes "HSP3.6 OBAQ[BSD] HSPDish   "
+	pos 250,770:mes "BGM - https://bgmer.net/music/138   "
+	pos 550,770:mes "2024 AbellAte.net AlMkAni.me"
+	redraw 1
+	await 16
+	goto *demo_l
+
+
+*start
+	mmplay 1
+	cls 4
+	font msgothic,20
+
+	qreset			; OBAQの初期化
+	qborder -200,-200,200,200
+	qaddpoly bg, 24, 100,60,0,100,120	; 壁を追加
+	qtype bg, type_bind|type_inner
+	qgroup bg, gr_wall
+	qmat bg,mat_wire, -1
+
+	score=0
+	max=40
+	dim combo,max			; コンボ用IDリスト
+	size=12
+	farsize=size*size*3
+	fr=0
+	tmode=0
+	cmax=0
+	climit=2
+	timer=4500
+
+*main
+	;	メインループ
+	;
+	stick key,$11f		; キーの取得
+
+	gosub *go_drop
+	gosub *go_touch
+
+	redraw 0		; 画面の更新を開始
+	gradf ,,,,1,0,128	; 画面クリア
+	qexec			; OBAQによるオブジェクトの更新
+	qdraw 1			; オブジェクトの描画
+	color 255,255,255
+	pos 40,670:mes "現在スコア:"+score+"pt     "
+	pos 640,670:mes "残り時間:"+timer/62+"秒     "
+	pos 0,0:mes ""+name+"\nhttps://AbellAte.net / https://AlMkAni.me  "
+	redraw 1		; 画面の更新を終了
+	await 16		; 一定時間待つ
+
+	timer--
+	if timer<=0 : goto *demo
+	goto *main
+
+*go_drop
+	;	コマを落とす
+	left=0
+	qfind gr_ball
+	repeat
+		qnext id:if id<0 : break
+		left++		; コマの残り数を数える
+	loop
+
+	if timer=600{max=255}
+	
+	if left<max {
+		fr++
+		if fr>4 {
+			; 新しいコマを落とす
+			fr=0
+			x=rnd(90)-45:k=rnd(4)
+			qaddpoly my, 5, x+100,-10,0,size,size	; 追加
+			quser my,k
+			qmat my,mat_spr, 3,k
+			qmat3 my,2
+			qgroup my, gr_ball
+		}
+	}
+	return
+
+*go_touch
+	;	タッチする
+	qcnvaxis ax,ay,mousex,mousey,1	; 画面座標から内部座標に変換
+	qinner res,ax,ay		; 座標を含むオブジェクトを調べる
+	;
+	if tmode=1 : goto *go_thold
+	if tmode=2 : goto *go_tover
+
+	if key&16 {		; 風を発生
+		qblast 400,0,255,1,9999
+	}
+
+	;	タッチを受け付け
+	if res<0 : return			; タッチできない
+	if key&256 {				; ボタンを押している
+		tmode=1
+		gosub *sub_select
+	}
+	return
+
+*go_thold
+	;	タッチ中
+	if (key&256)=0 {
+		; ボタンを離した
+		tmode=2
+		return
+	}
+	if res<0 : return			; タッチできない
+
+	qgetuser res, u1,u2,u3
+	if tcol!=u1 : return			; 同じ色ではない
+
+	dx=abs(ax-tx):dy=abs(ay-ty)
+	if dx*dx+dy*dy < farsize {		; 距離が近いか?
+		gosub *sub_select
+	}
+	return
+
+*sub_select
+	;	コマをマークする
+	tobj=res
+	tx=ax:ty=ay
+	qgetuser res, u1,u2,u3
+	tcol=u1
+	qmat3 res, 3, 128
+	return
+
+
+*go_tover
+	;	タッチ終了
+	tmode=0
+	cmax=0
+	qfind gr_ball
+	repeat
+		qnext id:if id<0 : break
+		qgetmat3 id, v_gmode, v_rate
+		if v_gmode=3 {
+			qmat3 id,2
+			combo(cmax)=id
+			cmax++
+		}
+	loop
+	if cmax<climit : return			; 規定コンボに達していない
+
+	bonus=0
+	repeat cmax
+		qdel combo(cnt)
+		bonus=bonus+rnd(3)+2
+		score=score+bonus
+		mmplay 0
+	loop
+	return
+

@@ -1,0 +1,1068 @@
+#include "hsp3dish.as"
+#pack	"parts.png"
+#pack	"chara.png"
+#pack	"se_clear.wav"
+#pack	"se_death.wav"
+#pack	"se_jump2.wav"
+#pack	"se_puyo.wav"
+
+	title "Define 1/10"
+	
+	#define IWINX 640
+	#define IWINY 480
+	AppTitle="AbellApple ～「大好物」に導かれし勇者～"
+
+	sw=ginfo_winx: sh=ginfo_winy	// 実行時の端末解像度x,y
+	dm=double(sw)/IWINX				// スケーリング倍率（X基準
+	
+	dim area_a, 4
+	dim area_b, 4
+	dim area_c, 4
+	
+	area_a = 460, 320, 560, 420		//6
+	area_b = 40, 140, 140, 420		//5
+	area_c = 160, 320, 260, 420		//4
+
+	sx=40:sy=40	; セルの大きさ
+	mx=16:my=12	; マップを並べる大きさ
+	wx=640:wy=480	; 画面のサイズ
+
+	hitparts=3
+	mysizex=64:mysizey=64
+	onerror gosub *error
+
+	;	素材の読み込み
+	celload "parts.png",2:title "Load PARTS.PNG 2/10"
+	celdiv 2,sx,sy
+	celload "chara.png",3:title "Load CHARA.PNG 3/10"
+	celdiv 3,mysizex,mysizey
+
+	celload "migi.png",4:title "Load MIGI.PNG 4/10"
+	celload "hidari.png",5:title "Load HIDARI.PNG 5/10"
+	celload "ue.png",6:title "Load UE.PNG 6/10"
+
+	;	音のデータを登録
+	mmload "se_clear.wav",0:title "LOAD SE_CLEAR.WAV 7/10"
+	mmload "se_death.wav",1:title "LOAD SE_DEATH.WAV 8/10"
+	mmload "se_jump2.wav",3:title "LOAD SE_JUMP2.WAV 9/10"
+	mmload "se_puyo.wav",4:title "LOAD SE_PUYO.WAV 10/10"
+	IsNeedPad=0
+	title AppTitle
+
+*gtitle
+	redraw 0
+	pos 0,0:clrobj
+	color 0,128,128:boxf:color 255,255,255
+	font msgothic,30,1
+	pos 20,40
+	mes AppTitle
+	font msgothic,18,1
+	pos 48,100
+	mes "<<ルール>>  \n・腐った林檎を触ったら死んじゃうよ  \n・操作方法を選択しよう(PCなら矢印・ｽﾍﾟｰｽ)   \n・★付きのコースは元ネタシリーズがあるよ！"
+	mes "\n操作補助を選択"
+	font "",16
+	mes "三ボタン式タップの場合、\n機種によっては反応エリアが右下になることがあるので注意！"
+	objsize 160,20 //IsNeedPad 0=タップ 1=らら 2=なし
+	if IsNeedPad=0{tmp="三ボタンタップ"}else:if IsNeedPad=1{tmp="ジェスジャータップ(重い)"}else{tmp="なし、PC向け"}
+	input tmp,300,20
+	objsize 50,50
+	pos 500,200:button "ﾓｰﾄﾞ変更",*change
+	pos 40,320:button "ｵｰﾌﾟﾆﾝｸﾞ",*opening
+	pos 100,320:button "1",*type1
+	pos 160,320:button "2",*type2
+	pos 220,320:button "3★10万",*type3
+	pos 280,320:button "4★20万",*type4
+	pos 340,320:button "5★30万",*type5
+	pos 400,320:button "6★40万",*type6
+	pos 460,320:button "7★60万",*type7
+	pos 520,320:button "8★70万",*type8
+	if Epi=1{pos 40,390:button "ｴﾋﾟﾛｰｸﾞ",*epis}
+	redraw 1
+	await 1
+	goto *gtitle
+
+*change
+	IsNeedPad++:if IsNeedPad=3{IsNeedPad=0}
+	goto *gtitle
+	
+*type1
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="初めてのジャンプアップ♪":MapScore=1
+	cr="\n"
+	mapd+="                        "+cr
+	mapd+="                        "+cr
+	mapd+="                        "+cr
+	mapd+="                  *     "+cr
+	mapd+="          *      00     "+cr
+	mapd+="         000            "+cr
+	mapd+="                        "+cr
+	mapd+="      00**    00     00 "+cr
+	mapd+="        00              "+cr
+	mapd+="   ++++   00            "+cr
+	mapd+="   0000         00      "+cr
+	mapd+="         0000           "+cr
+	mapd+="     ***                "+cr
+	mapd+="++  00000     00   00   "+cr
+	mapd+="00          00          "+cr
+	mapd+="          00           *"+cr
+	mapd+="                      00"+cr
+	mapd+="        0000            "+cr
+	mapd+="   ***                  "+cr
+	mapd+="  00000            000  "+cr
+	mapd+="             000        "+cr
+	mapd+="        00            00"+cr
+	mapd+="00000000AA00000000000000"+cr
+	myspd=4:grav=14:yuuyo=0:water=1:ClearText="ちょっとまて、そんな操作で大丈夫? サラン武器防具連盟～"
+	colors(0)=0:colors(1)=128:colors(2)=128
+	goto *Load2	
+
+*type2
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="地下迷廊":MapScore=2
+	cr="\n"
+	mapd+="                                   ***                 0"+cr
+	mapd+="                                   000                 0"+cr
+	mapd+="                                                       0"+cr
+	mapd+="                                00     00              0"+cr
+	mapd+="                              00AA     AA00            0"+cr
+	mapd+="                              ++         ++            0"+cr
+	mapd+="                           00 ++ +       ++ 00         0"+cr
+	mapd+="                         00AA ++00000    ++ AA00       0"+cr
+	mapd+="                              ++         ++            0"+cr
+	mapd+="                       00     ++       + ++     00     0"+cr
+	mapd+="                     00AA     ++    00000++     AA00   0"+cr
+	mapd+="              00              ++         ++            0"+cr
+	mapd+="             0AA   00    *    ++ +       ++    *       0"+cr
+	mapd+="*           0AAA   AA00000    ++00000    000000000000000"+cr
+	mapd+="        00    AA        AA                             0"+cr
+	mapd+="99  99        AA *      AA          *                  0"+cr
+	mapd+="              AA000000  AA      00000000000000000000   0"+cr
+    mapd+="                        AA      AA++++++++++++++AA     0"+cr
+	mapd+="      99                AA  0000AA              AA  0000"+cr
+	mapd+="                                AA   000   00   AA  AA 0"+cr
+	mapd+="                                AA     A   AA         *0"+cr
+	mapd+="        99            BBBBBBBBBBBBBB   BBBBBBBBBBBBBBBBB"+cr
+	mapd+="    7777777777     *    BB      BB     BB++BB++++++++++B"+cr
+	mapd+="                77      BB           BBBB  BB          B"+cr
+	mapd+="                        BB                *BB         *B"+cr
+	mapd+="       *                BB   BBBBBBBBBBBBBBBB         BB"+cr
+	mapd+="++    777     77        BB      BB+++++++++++          B"+cr
+	mapd+="77                     +BB      BB                999  B"+cr
+	mapd+="          77    *   BBBBBBBBBB  BB                     B"+cr
+	mapd+="*                       BB      BB                     B"+cr
+	mapd+="777                     BB      BB            999      B"+cr
+	mapd+="        777           * BB      BB                     B"+cr
+	mapd+="                    9999BB   BBBBB++                   B"+cr
+	mapd+="               BB     99BB                999          B"+cr
+	mapd+="  BB    BBB    BB       BB*                            B"+cr
+	mapd+="  BBBBBBBBBBBBBBB       BBBBBBBBBBBBBBBBB             *B"+cr
+	mapd+="BBBBBBBBBBBBBBBBB       BBBBBBBBBBBBBBBBB555555555555BBB"+cr
+	myspd=4:grav=14:yuuyo=1:water=1:ClearText="結構いい視聴率でしたよ。次コースからは\n過去の長編ベースなので食いつきもいいでしょう。"
+	colors(0)=0:colors(1)=128:colors(2)=128
+	goto *Load2	
+
+*type3
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="[10万]宇宙の星を目指して":MapScore=3
+	cr="\n"
+	mapd+="                                                   GGGGGGG                             LLL    +                              MMMMMMMMMM      "+cr
+	mapd+="                                                  GGGGGG                               LL     +                              MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG        *                     LLL     +          CCC   MMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG       FFF  99  99  GGGG      LLL     +         CCCCC MMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG      FFFFF         GGGG       LL     +      77   99 MMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG    99FFLFF         GGGG    LLLLLLLL  +            9 MMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG      FFFFF         GGGG    LLLLLLLL  +      C     9MMMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG       FFF          GGGG    LLKLLKLK  +     CC  77 9MMMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG99                  GGGG    KMLLLLMK  +     CC     MMMMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG                    GGGG    KMLKLLMK  +     CC9    MMMMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG                   GGGG     KKKKKKKK  +      C 9  MMMMMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG    99            GGGG      KKKKKKKK  +      C  99MMMMMMMMMMMMMMMM   MMMMMMMMMM      "+cr
+	mapd+="                                                   GGGGG                GGGGGG                +          9MMMMMMMMM                 MMM      "+cr
+	mapd+="                                                   GGGGGGG            GGGGGGG                 +          MMMMMMMMMM                 MMM      "+cr
+	mapd+="                                                     GGGGGGGGG   99GGGGGGGGG      999         +     C    MMMMMMMMMM                 MMM      "+cr
+	mapd+="                                                       GGGGGGG     GGGGGGG                    +    CC    MMMMMMMMMM       777       MMM      "+cr
+	mapd+="                                                         GGGGG99   GGGGG     HHHHHHHHHH       +    CC * MMMMMMMMMMM                 MMM      "+cr
+	mapd+="                                                          BB D     D         HHMHHHHMHH       +    CC999MMMMMMMMMMM        *        MMM      "+cr
+	mapd+="                                                         BB  D   99D         MMMMMMMMMM 999   +    CC  9MMMMMMMMMMM      FFFFF      MMM      "+cr
+	mapd+="                                                        BB   D     D         MGGGGGGGGM       +     C   MMMMMMMMMMMMMMMMFFFFFFFMMMMMMMM      "+cr
+	mapd+="                                                       BB    D  *  D         MGHKGGKHGM       +         MMMMMMMMMMMMMMMMFFFFFFFMMMMMMMM      "+cr
+	mapd+="                                                      BB   99999999999       MGHKKGKHGM    999+     C   MMMMMMMMMMMMMMMMFFFLFFFMMMMMMMM      "+cr
+	mapd+="                                                            9999 9999        MKHKKKKHKM            CC  9MMMMMMMMMMMMMMMMFFFFFFFMMMMMMMM      "+cr
+	mapd+="                                                             999 999         MFKKKKKKFM*           CC999MMMMMMMMMMMMMMMMFFFFFFFMMMMMMMM      "+cr
+	mapd+="                                                              99 99          MKKKKKKKKM999         CC    MMMMMMMMMMMMMMMMFFFFFMMMMMMMMM      "+cr
+	mapd+="                                                               9 9                            999   C    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                               9 9            *             *         C  MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                               9 9            999                   *CC   MMMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                              99 99              *         999      CCC  9MMMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                 999           99   CCC999MMMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                       *          99CCC    MMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                       999           CC    MMMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                    BBB      99999    C     MMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                   BBBBB       JJJJ         MMMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                   BBBBB      JJJJJJ         MMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                   BBBBB      JJJJJJ         MMMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                    BBB       JJJJJJ          MMMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                              JJJJJJ           MMMMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                               JJJJ              MMMMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                                                   MMMMMMMMMMMMMMMMMMMM      "+cr
+	mapd+="                                                                                                                      MMMMMMMMMMMMMMMMM      "+cr
+	mapd+="               777                                                                                                       MMMMMMMMMMMMMM      "+cr
+	mapd+="              77777                                                                                                         MMMMMMMMMMM      "+cr
+	mapd+="              77777                                                                                                                          "+cr
+	mapd+="              77777    BB                                       N                                                                            "+cr
+	mapd+="               777    BB   999                                 BBB                                                                           "+cr
+	mapd+="      CCC            BB                                      BBBBBBB                                                                         "+cr
+	mapd+="     CCCCC          BB         999            666999999999999AAAAAAA66                                                                       "+cr
+	mapd+="    CCCCCCC        BB                       66AAA66        66AABBBAAAA66                                                                     "+cr
+	mapd+="       9          BB*              999    66ABBBBAA66    66AAABBBBBAAAAA66                                                                   "+cr
+	mapd+="       9       66666661111111111116666666AAABBBBBBBAA6666AAABBBBBBBBBAAAAA6611111111111111111111111111111111111111111111111111111111111111111"+cr
+	mapd+="      99*    66ABBBBAA611111111116AAABBBBABBBBBBBBBBAAAAAAAABBBBBBBBBBAAAAAAAA111111111111111111111111111111111111111111111111111111111111111"+cr
+	mapd+="    666666666ABBBBBBBBA6661111666ABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAA1111111111111111111111111111111111111111111111111111111111111"+cr
+	mapd+="  66AABBBBBBBBBBBBBBBBBBBB6666BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAA11111111111111111111111111111111111111111111111111111111111"+cr
+	mapd+="66AABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAA111111111111111111111111111111111111111111111111111111111"+cr
+	myspd=4:grav=16:yuuyo=0:water=1:ClearText="いや～上空に顔の星を作るなんてすごいアイデアですね～"
+	colors(0)=2:colors(1)=64:colors(2)=64
+	goto *Load2
+
+*type4
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="[20万]蜘蛛と防衛跡":MapScore=4
+	cr="\n"
+	mapd+="                                                                              BBBBB                                                                                                     4                                         "+cr
+	mapd+="                                                                              BBBBB                                                                                                     4                                         "+cr
+	mapd+="                                                                              BBBBB                                                                                                     4                                         "+cr
+	mapd+="                                                                              BBBBB      OO55OO55OO55OO55O                                                                              4                 BB   BB                 "+cr
+	mapd+="                                                                              BBBBB  MMBBBBBBBBBBBBBBBBBBBBBBBBB                                                                        4                  B   B                  "+cr
+	mapd+="                                                                              BBBBB    G    G    G    G      BBB                                                                        4                  B P B                  "+cr
+	mapd+="                                                                              BBBBB                          BBB                                                                        4        BB   BB BBBBBBBBB BB   BB        "+cr
+	mapd+="                                                                              BBBBBMM                        BBB                                                                        4    CC BBBBBBBB BBBBBBBBB BBBBBBBB       "+cr
+	mapd+="                                                                      BBB     BBBBB               C  C       BBB   BBB                                   BB BB                          4        BBBBBBB BB BBB BB BBBBBBB        "+cr
+	mapd+="                                                                     BBBBB    BBBBB               C  C       BBB  BBBBB                                  BBBBB             KMKKKKMKKKKMK         BBB BBB BBB B BBB BBB BBB        "+cr
+	mapd+="                                                                    BB777BB   BBBBBBBBBBBBBBBBBBBBBBBBB      BBB BB777BB                              CC  B2B              KMKKKKMKKKKMK   CC     BBBBB BBB BBB BBB BBBBB         "+cr
+	mapd+="                                                                     B727B    BBBBB   G    G    G    G       BBB  B727B                                   BBB             KKMKKKKMKKKKMKK         BB BB BBBB B BBBB BB BB         "+cr
+	mapd+="                                                        CCC   CCC    B777B    BLBLB                        BBBBB  B777B                                   BBB             KKMKKKKMKKKKMKK         BBBBB BBBBB BBBBB BBBBB         "+cr
+	mapd+="  *                                                CCC CCCCC CCCCC   B727B    BBLBB                      BBBBBBB  B727B                           CCC     B2B            KKKMKKKKMKKKKMKKK   CC   BB BB BBBBBBBBBBB BB BB         "+cr
+	mapd+=" CCC                 CC                       CCC CCCCC  9    9      B777B    BLLLB                    BBBBOOBBB  B777B            CC     99999  CCCCC    BBB             9             9         BBBBB BBBBBBBBBBB BBBBB         "+cr
+	mapd+="CCCCC               CCCC                     CCCCC  9    9    9      B777B    BLBLB                  BBBBOOOOBBB  B777B                   BBBBB   9      BBBBB            9             9         BB BB BBBBBBBBBBB BB BB         "+cr
+	mapd+="  9                   9CC       H  H           9    9   9     99     B7D7B    BBBBB                BBBBOOOOOOBBB  B7D7B      F F FF    L  BKKKB   9   BBBBBBBB                 M  M        CC     BBBBB BBBBBBBBBBB BBBBB         "+cr
+	mapd+="  9                  9          H  H           9    9   9      9     B7D7B                       BBBBOOOOOOOOBBB  B7D7B   F 6666666    O  BK2KB   9   DBB2BB2B   HH HH         M  M               BBBBB BBBBBBBBBBB BBBBB         "+cr
+	mapd+="  9               66 9          H  H           9    9  99      999  BBBBBBB          OO 44 OO  BBBBBBOOOOOOOOBBB BBBBBBB 666AAAAAAA6   O  BKKKB  99   DBBBBBBB  9AA1AA9  BBBBBBBBBBBBBBBBBB     BBBBBBBBBBBBBBBBBBBBBBBBBBB    *  "+cr
+	mapd+="66666111111111111AA6666666  66666666611111166666666666666666666666666666666666BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB666666666AAAAAAAAAAA666666BBBBB66666666666666666666666666666666666666666666666666666666666666666666666666666666666"+cr
+	mapd+="AAAAAA1111111111AAAAAAAA    AAAAAAAAAAA111AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="AAAAAA1AA11111AAAAAAAA      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="AAAAAA1AAAAAAAAAAAAA     666AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="AAAAAA1AAAAAAAAAAAAA     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="AAAAAA1AAAAAAAAAAA     66AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="BBBBB11BBBBBBBAAA      AABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBB11BBBBBBBAA     66AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBB11 BBBBBBAA     AAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBB11    BBBA    66AAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBB11          AAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBB*1            AAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBBB1B           AAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBB111BB     BBB  AAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBB1111BBBBBBBB    AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBB1BBBBBBBBBBB    AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BB 1             AAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="B  1               AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="   1               AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="   1            AABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="   1          AABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="  11 9MMM9BBAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	myspd=6:grav=16:yuuyo=0:water=1:ClearText="だんだんリンゴがなくなってきた,,,"
+	colors(0)=2:colors(1)=64:colors(2)=64
+	goto *Load2
+	
+*type5
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="[30万]まほせかの異世界迷楼":MapScore=5
+	cr="\n"
+	mapd+="                                                                                                                                                                                                      44                                                "+cr
+	mapd+="                                                                                                                                                                                                      44                                                "+cr
+	mapd+="                                                                                                                                                                                                      44                                                "+cr
+	mapd+="                                                                                                                                                                                                      44                                                "+cr
+	mapd+="                                                                                                                                                                                                      44                                                "+cr
+	mapd+="                                                                                                                                                                                                      44                                                "+cr
+	mapd+="                                                                                                                                                             CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC     44                                                "+cr
+	mapd+="                                                                                                                                                     CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC   44                                                "+cr
+	mapd+="                                                                                                                                                     CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC  44                                                "+cr
+	mapd+="                                                                                                                                               CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC  44                                                "+cr
+	mapd+="                                                                                                                                             CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC  44                                                "+cr
+	mapd+="                                                                                                                                             CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC   44                                                "+cr
+	mapd+="                                                                                                                                             CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC4   44                                                "+cr
+	mapd+="                                                                                                                                             CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC44   44                                                "+cr
+	mapd+="                                                                                                                                               CCCCC999CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 44   44                                                "+cr
+	mapd+="                                                                                                                                                    99999CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC    44   44                                                "+cr
+	mapd+="                                                                                                                                                    9999999CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC      44   44                                                "+cr
+	mapd+="                                                                                                                                                       999999CCCCCCCCCCCCCCCCCCCCCCCCCCCC        44   44                                                "+cr
+	mapd+="                                                                                                                                                       1199999CCCCCCCCCCCCCCCCCCCCCCCCCCC        44   44                                                "+cr
+	mapd+="                                                                                                                                                       11  9999CCCCCCCCCCCCCCCCCCCCCCCCCC        44   44                                                "+cr
+	mapd+="                                                                                                                                                       11   999CCCCCCCCCCCCCCCCCCCCCCCCCC        44   44                                                "+cr
+	mapd+="                                                                                                                                                       11   9999CCCCCCCCCCCCCCCCCCCCCCCCC        44   44                                                "+cr
+	mapd+="                                                                                                                                                       11    9999CCCCCCCCCCCCCCCCCCCCCCCC        44   44                                                "+cr
+	mapd+="                                                                                                                                                       11     9999                               44   44                                                "+cr
+	mapd+="                                                                                                                                                NN     11      9999                              44   44                                                "+cr
+	mapd+="                                                                                                                                              77777    11       999                              44   44                                                "+cr
+	mapd+="                                                                                                                                             7777777   11        9999                            44   44                                                "+cr
+	mapd+="                                                                                                                                              77777    11         9999                           44   44                                                "+cr
+	mapd+="                                                                                                                                                       11          9999999999                    44   44                                                "+cr
+	mapd+="                                                                                                                                                       11          9999999999                                                                           "+cr
+	mapd+="                                                                                                                             77777        77777        11          9999999999                                                                           "+cr
+	mapd+="                                                                                                                            7777777      7777777       11          9999999999                                                                           "+cr
+	mapd+="                                                                                                                             77777        77777        11          9999999999                                                                           "+cr
+	mapd+="                                                                                                                                                       11           999999999                                                                           "+cr
+	mapd+="                                                                                                                                                       11           999999999                                                                           "+cr
+	mapd+="                                                                                                                                                       11            999999999999                                                                       "+cr
+	mapd+="                                                                                                                        77777                          11             99999999999                                                                       "+cr
+	mapd+="                                                                                                                       7777777                         11              9999999999                                                                       "+cr
+	mapd+="                                                                                                                        77777                          11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999            777                                                        "+cr
+	mapd+="                                                                                                                                                       11               999999999           77777                                                       "+cr
+	mapd+="                                                                                                                         77777                         11               999999999            777                                                        "+cr
+	mapd+="                                                                                                                        7777777                        11               999999999                                                                       "+cr
+	mapd+="                                                                                                                         77777           77777         11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                        7777777        11               999999999                                                                       "+cr
+	mapd+="                                                                                                                77777                    77777         11               999999999                                                                       "+cr
+	mapd+="                                                                                                               7777777                                 11               999999999                                                                       "+cr
+	mapd+="                                                                                                                77777                                  11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                              77777    11               999999999                        777                                            "+cr
+	mapd+="                                                                                                                                             7777777   11               999999999                       77777                                           "+cr
+	mapd+="                                                                                                                                              77777    11               999999999                        777                                            "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                         77777                         11               999999999                                                                       "+cr
+	mapd+="                                                                                                                        7777777        NN              11               999999999                                                                       "+cr
+	mapd+="                                                                                                                         77777        777777           11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                     77777777          11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                     77777777          11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                      777777           11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                             77777777  11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                            7777777777 11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                             77777777  11               999999999              777                                                      "+cr
+	mapd+="                                                                                                                                                       11               999999999             77777                                                     "+cr
+	mapd+="                                                                                                                                                       11               999999999              777                                                      "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                         777                                           "+cr
+	mapd+="                                                                                                                                                       11               999999999                        77777                                          "+cr
+	mapd+="                                                                                                                                                       11               999999999                         777                                           "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                                       11               999999999                                                                       "+cr
+	mapd+="                                                                                                                                         77777         11           CCC9999999999                                                                       "+cr
+	mapd+="                                                                                                                                        7777777        11         *CCCC9999999999                                                                       "+cr
+	mapd+="                                                                                                                                         77777   NN    11111      CCCCC9999999999                                                                       "+cr
+	mapd+="                                                                                                                                               CCCCCCCCCCCC111OOOOCCCC99999999999                                                                       "+cr
+	mapd+="                                                                                                                                               CCCCCCCCCCCCCCCO    CCC99999999999                                                                       "+cr
+	mapd+="                                                                                                                                              CCCCCCCCCCCCCCCCC     9999999999999                                                                       "+cr
+	mapd+="                                                                                                                                              CCCCCCCCCCCCCCCCC     9999999999999                                                                       "+cr
+	mapd+="                                                                                                                                              CCCCCCCCCCCCCCCCC    99999999999999                                                                       "+cr
+	mapd+="                                                                                                                                               CCCCCCCCCCCCCC      99999999999999                                                                       "+cr
+	mapd+="                                                                                                                                               OCCCCCCCCCCCC      999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                               O  99999999        999999999999999              777                                                      "+cr
+	mapd+="                                                                                                                                               O   O 999999       999999999999999             77777                                                     "+cr
+	mapd+="                                                                                                                                     CCCCCCC   O   O   9999      9999999999999999              777                                                      "+cr
+	mapd+="                                                                                                                                    CCCCCCCCC  O   O    9999     9999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                     CCCC9CC   O   O    9999     9999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                         999   O   O    99999   99999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                          999      O    999999  99999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                           999     O    9999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                             999   O     999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                              999  O     999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                               999 O      99999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                                999O       9999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                          777   9999        999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                         77777    9999    OO999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                          777      9999     999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                         *       9999999999  99999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                         CCCCCC9999    99999 99999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                  777   CCCCCC999         99999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                 77777   CCCCCC    BBBBBB  9999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                  777             BBBBBBBB  999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                                   K    K   999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                    *              K    K    99999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                    CCCCCC         KOO  K    99999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                   CCCCCCCC      99999999999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                    CCCCCC      999999999999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                         99   99999 O 999999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                          99999999  O   9999999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                           9999     O     99999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                               4          99999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                               4          99999999999999999999999                                                                       "+cr
+	mapd+="                                                                                                                                                999999     9999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                  44444444444444444444444444444444444444444     9999999999   9999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                  K   OK     9999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                  K   OK     9999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                  KOO         999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                 99999999     999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                   99999999   999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                      O       999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                                                                      O     99999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                          444444444444444444                          O     99999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                          4                4                          O   9999999999999999999999999                                                                       "+cr
+	mapd+="                                                                             4                          4                4                          O       999999999999999999999                                                DDDDDDDDDDDDDDDDDDDDDDD"+cr
+	mapd+="                                                                             4                          4                4                          O       999999999999999999999                                                DDDDDDDDDDDDDDDDDDDDDDD"+cr
+	mapd+="                                                                             4                          4                4                          999     999999999999999999999                                                99999999999999999999999"+cr
+	mapd+="                                                                             4                          4                4                          99999   999999999999999999999                                   DDDDDDDDDDDDD9                     9"+cr
+	mapd+="                                                                             4                          4                4                                  999999999999999999999                                   DDDDDDDDDDDDD9                     9"+cr
+	mapd+="                                                                             4                          4                4                                99999999999999999999999                                   DDDDDDDDDDDDD9                     9"+cr
+	mapd+="AAAAAAAAAAAAA                                                                4                          4                4                                99999999999999999999999                                   DDDDDDDDDDDDD9                     9"+cr
+	mapd+="AAAAAAAAAAAAA                                                           BBBBBBBB                        4                4                                99999999999999999999999                                   9KKKKKKKKKKKK9                     9"+cr
+	mapd+="AAAAAAAAAAAAA                                                            L    L                         4                4                              9999999999999999999999999                                   9K22K22K22K229                     9"+cr
+	mapd+="AAAAAAAAAAAAA                                                            M    M                         4                4                              9999999999999999999999999                                   9K22K22K22K229                     9"+cr
+	mapd+="AAAAAAAAAAAAA                                                            L    L                         4          BBB  BB                              9999999999999999999999999                                   9KKKKKKKKKKKK9                    *9"+cr
+	mapd+="AAAAAAAAAAAAA                                                                 L                         4         BBB    BB                           999999999999999999999999999                             DDDDDD9999999999999                 KKKKK9"+cr
+	mapd+="AAAAAAAAAAAAA                                                        BBBBBB  BBBBBB                     4    BBB B       BB                           999999999999999999999999999                            DDDDDDD9                             KKOOO9"+cr
+	mapd+="AAAAAAAAAAAAA                                                       BBBBBBB  BBBBBBB                     99    BBBB       BB                          999999999999999999999999999                           DDDDDDDD9                           KKKK   9"+cr
+	mapd+="AAAAAAAAAAAAA                                    999999            BBBBBBBB  BBBBBBBB                           BB         BB                       99999999999999999999999999999                                   9                           KKKK   9"+cr
+	mapd+="AAAAAAAAAAAAA                                   9K9KK9K9          BBBBBBBBB  BBBBBBBBB                          BB         BB                       99999999999999999999999999999                                   9                         KKKKKK   9"+cr
+	mapd+="AAAAAAAAAAAAA                               99  9K9KK9K9         BBBBBBBBBB  BBBBBBBB9999999               99   BB         BB                     9999999999999999999999999999999                                                             KKKKKK   9"+cr
+	mapd+="AAAAAAAAAAAAA                                   929DD929        BBBBBBBBBBB  BBBBBBBB9KK9KK9     BBB  BBB       BB         BB                     9999999999999999999999999999999                                                           KKKKKKKK   9"+cr
+	mapd+="AAAAAAAAAAAAA                                   9K9DD9K9       BBBBBBBBBBBB  BBBBBBBBB229229          BBB       BB                              999999999999999999999999999999999                           OBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="AAAAAAAAAAAAA                             999   66BBBB66      BBBBB     BKK  KKBBBBBBBBK9KK9  BBB     BBB99     BB    99  BBBB           666666666666666666666666666666666666666611111111111111111666666666666666666AAAAAAAAAAAAAAAAAAAAA  AAAAAAAAAAAAA"+cr
+	mapd+="AAAAAAAAAAAAA                                   AABBBBAA*    BBBBBB     KKK  KKKBBBBBBBB9KK9          BBB      BBBB      BBBBBB        66AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA11111111111111111AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA  AAAAAAAAAAAAA"+cr
+	mapd+="AAAAAAAAAAAAA                                 66AA6666AA6666BBBBBBB G    9    9BBBBBBBBBBBBB         BBBB55555BBBBB555555BBBBBBB    666AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA11111111111111111AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA55AAAAAAAAAAAAA"+cr
+	mapd+="BBBBBBBBBBBBB                               66AAAAAAAAAAAAAABBBBBBB B    9    9BBBBBBBBBBBBBB666666666666666666666666666666666666666AAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                            AAAAAAAAAAAAAAAABBBBBBB B         9BBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                            AAAAAAAAAAAAAAABBBBBBBB B A66666666BBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                          66AABBBBBBBBBBBBBBBBBBBBB B AAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                          AABBBBBBBBBBBBBBBBBBBBBBB B AAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                 *      66AABBBBBBBBBBBBBBBBBBBBBBB B AAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="        CCC   CCC               CCC     AAABBBBBBBBBBBBBBBBBBBBBBBB B BBBBBBBBBBBBBBBB    BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="       CCCCC CCCCC             CCCCC    AABBBBBBBBBBBBBBBBBBBBBBBBB B BOOBOOBOOBOOBOOB    BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="         9     9        M       9     66AABBBBBBBBBBBBBBBBBBBBBBBBB B BOOBOOBOOBOOBOOB    BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="         9     9      M M M     9     AAABBBBBBBBBBBBBBBBBBBBBBBBBB B BBBBBBBBBBBBBBBB    BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="        99    99      MMMMM    99     AAABBBBBBBBBBBBBBBBBBBBBBBBBB                       BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="      66666666666666666MMM666119111166AABBBBBBBBBBBBBBBBBBBBBBBBBBB                     NNBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="      AAAAAAAAAAAAAAAAAMMMAAAAA9111AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="      AAAABBBBBBBBBBBBBMMMBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="    66AAABBBBBBBBBBBBBBMMMBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="    AAAAABBBBBBBBBBBBBBMMMBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="  66AAABBBBBBBBBBBBBBBBMMMBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="66AAABBBBBBBBBBBBBBBBBBMMMBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11111111111111111BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+    myspd=4:grav=15:yuuyo=0:water=1:ClearText="この回は胸糞でしたね。いまどうしてるんだろ。"
+	colors(0)=150:colors(1)=240:colors(2)=240
+	goto *Load2
+	
+*type6
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="[40万]0.5HPの山下り":MapScore=6
+	cr="\n"
+	mapd+="               *                                     4444444444444"+cr
+	mapd+="              777                                    4            "+cr
+	mapd+="                                                     4            "+cr
+	mapd+="                                                     4            "+cr
+	mapd+="                                            6666116664            "+cr
+	mapd+="                                            AAAA11AAA4            "+cr
+	mapd+="                                    *    BB6AAAA11AAA4            "+cr
+	mapd+="77666           66       66666B    BB    BBBA11111AAA             "+cr
+	mapd+="AAAAA     OO    AA   66  AAAAAB     B    BBBA*1111AAA             "+cr
+	mapd+="AAAAA     66    AA   AA55AAABBB     B    BBBAAA111AAA             "+cr
+	mapd+="AAAAA  44 AA  44AA   AAAAAAABBB55555BB555BBBAAA111AAA         *   "+cr
+	mapd+="AAAAA 4BB AA44AAAA   AAAAABBBBBB55555555BBBBAAA111AAA        77   "+cr
+	mapd+="AABBB4BBB4AABBBABB4  BBBBBBBBBBBBBBBLLLBBB1111111BBBB        77   "+cr
+	mapd+="AABBBBBBBBBBBBBBBBB  BBBBBBBBBBBBBBB111BBB11BBBBBBBBB        77   "+cr
+	mapd+="AABBBBBBBBBBBBBBBBB  BBBBBBBBBBBBB1111111B11B111111BB      7777   "+cr
+	mapd+="AABBBBBBBBBBBBBBBBB44BBBBBBBBBBBBB1111111B11B11BB11BB      7777   "+cr
+	mapd+="AABBBBBBBBBBBBBBBBB4BBBBBBBBBBBBBB1111111B11B11BB111B      7777   "+cr
+	mapd+="AABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BB1CCB11111BB111B    777777   "+cr
+	mapd+="AABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BB1111BBB11B111*B    777777   "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BB111111B11B11BBB    777777   "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BBCC1111B1B111BBB  77777777   "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BBCC1111111111BBB6666666666   "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BBBB1111111111BBB11AAAAAAAA   "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BBBBBBBBBBBB55BBB11AAAAAAA    "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB11BBBBBBBBBBBBBBBBB11AAAAAAA    "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB111111111111111111111AAAAAA     "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB       "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 4           "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 4           "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB          4           "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB          4           "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB           77         "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB           77         "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB           77         "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB           77         "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB          BBBBBBBB    "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB        BBBBBBBBBBBB  "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB          9      9    "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB          9      9    "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB  *       9      9    "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 777      9*          "+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB666666666DDD  DDDDD666"+cr
+	mapd+="  BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAA      AAAAAAAA"+cr
+	mapd+="  BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAA      AAAAAAAA"+cr
+	mapd+="NNBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	myspd=4:grav=20:yuuyo=0:water=1:ClearText="HP0.5系はもしせかの次に人気だそうで。"
+	colors(0)=150:colors(1)=240:colors(2)=240
+	goto *Load2
+	
+*type7
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="[60万]視聴者との1マス世界":MapScore=7
+	cr="\n"
+	mapd+="                                                                                    44                    L                  "+cr
+	mapd+="                         CCC  CCC   CCC                                             44                   LJL                 "+cr
+	mapd+=" *           999999999  CCCCCCCCCC CCCCC                                            44                   LJL                 "+cr
+	mapd+=" BBBBBBBBBB    O   O      9    9     9                                              44                   LJL                 "+cr
+	mapd+=" BBBBBBBBBB    O   O      9    9     9                                              44                  LIIIL                "+cr
+	mapd+=" BBBBBBBBBB    OOOOO  BB  9    9     9                               BB             44                LLMMIIILL              "+cr
+	mapd+=" KKKKBBKKKK*  KKKKKKK BBBBBBBBBBBBBBBBBBBB                          BKKB            44               LMMIIIIIIIL             "+cr
+	mapd+="     BB          K                           99                    B9KK9B*          44              LMMIIIIIJJJIL            "+cr
+	mapd+="     BB          K                                                B999999B          44             LIMJJMIIJMJJJJL           "+cr
+	mapd+="     BB          K                                               B9K    K9B         44             LIJJMLMJMLMJJJL           "+cr
+	mapd+="     BB          K                         99                    B9K    K9B         44             LIJJJMJJJMJJJJL           "+cr
+	mapd+="     BB          K       KKKKKK       111                        B9KKKKKK9B         44             LIJJEJJJJJEJJJL           "+cr
+	mapd+="     BB          K       KKKKKK      B1B1B                 BBBBBBK99999999KBBBBBB   44              LIJJEEEEEJJJL            "+cr
+	mapd+="     BB          K       KKKKKK       1B1    99              9KKK9KK    KK9KKK9                      LLJJJJJJJLL             "+cr
+	mapd+="     BBBB        K       KKKKKK       1B1                    9OOO9K      K9OOO9                        LLLLLLL               "+cr
+	mapd+="                 K        OOOO  *   B11111B                  9O2O9K      K9O2O9                                              "+cr
+	mapd+="**GGHBBHGGHH     K      KKKKKKKKKKKBBBBBBBBBB  99            9O2O9KK    KK9O2O9                                              "+cr
+	mapd+="AAAAAAAAAAAAAAAA K                                          9COOKC99999999COOKC9                                             "+cr
+	mapd+="                 K                                  *       9BKKKBK      KBKKKB9                                             "+cr
+	mapd+="                 K                           99    CCC      999999O      O999999                                             "+cr
+	mapd+="444444444444444444444444444444                   CCCCCCC    9KKKKKO      OKKKKK9                         NNN                *"+cr
+	mapd+="LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL  L              CCCCCCCCC   99OOO9O      O9OOO99         BBBBBBBBBBBBBBBBBBBB           HLLLH"+cr
+	mapd+="LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL  L         99   C9AAAAA9C   C9K2K9O      O9K2K9C                                      BB     "+cr
+	mapd+="LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL  L              C9AAKAA9C   C9K2K9        9K2K9C                                    BBBB     "+cr
+	mapd+="LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL  L               9AAKAA9    CBMMMB   *    BMMMBC          8  8  8  8  8  8  8     BBBBBB     "+cr
+	mapd+="2222222222222222222222222222222  2           BBBBBBBBBBBBB  BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     "+cr
+	mapd+="IIIIIIIIIIIIIIIIIIIIIIIIIIIIIII  I                       B                BBBBB                                              "+cr
+	mapd+="                                 J                       BBBBBBBBBBBBBBBBBBBBBB                                              "+cr
+	mapd+="  G I G I G I G I G I G I G I    J                                                                                           "+cr
+	mapd+="                                 J                                                                                           "+cr
+	mapd+="                                 J                                                                                           "+cr
+	mapd+="                               NNJ                                                                                           "+cr
+	mapd+="JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ                                                                                           "+cr
+	myspd=4:grav=15:yuuyo=0:water=1:ClearText="スカイブロックって懐かしいですね。アベルさんのお馴染みだそうで。"
+	colors(0)=88:colors(1)=140:colors(2)=140
+	goto *Load2
+	
+*type8
+	clrobj:sdim mapd,$10000:notesel mapd:MapTitle="[70万]もしせか本編&外伝":MapScore=8
+	cr="\n"
+	mapd+="                                                                                                                                                                                                                    "+cr
+	mapd+="                                                                                                  MMM                                                                                                               "+cr
+	mapd+="                                                                                                                                                                                                                    "+cr
+	mapd+="MM  EEEE*  EEE EEE E EEE   E  E EEE E   E   7  7  7 7 7 7                                        M     JJ                                                                                                           "+cr
+	mapd+="   EEMEEE    E E E E E     EE E E E E E E  7 7 77 7 7 7 7                                       BBB                                                                                                                 "+cr
+	mapd+="   EEMMEE  EEE E E E EEE E E EE E E E E E  777 7 77 7 7 7                                       BBB JJ                                                                                                              "+cr
+	mapd+="   EEMEEE  E   E E E   E   E  E E E EE EE  7 7 7  7 7 7 7                                       BBB                                                                    BBBB                                         "+cr
+	mapd+="MM  EEEE   EEE EEE E EEE   E  E EEE E   E  7 7 7  7 7  7  7                                     BBB    JJ     MMMMMMM JJ                                              B9999B                                        "+cr
+	mapd+="                                                                                                BBB           MKKKKKM                                                B99KK99B                                       "+cr
+	mapd+="CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC                                       BBB JJ        MLMKMLM    JJ                                         B9K9KK9K9B                                      "+cr
+	mapd+="                                                                                  OO            BBB           MKKKKKM             7DDDDDDDDD7OOOO7DDDDDDDDD7       B9999999999B                                     "+cr
+	mapd+="MM                                                              BBBBB             BBBBBBBBBBBBBBBBBB    JJ    MMKEKMM             77777777777777777777777777        9K9K99K9K9                        O             "+cr
+	mapd+="                                          GGG GGG              BBBBBBB           BBBBBBBBBBBBBBBBBBBB         MMKEKMM       JJ    7KKKK7KKKK7MMMM7KKKK7KKKK7 99     9K9K99K9K9                        BB           B"+cr
+	mapd+="     E  LL  EE L  E    H  GGG HH G  G HH  G G G G GGG          BBBBBBB          BBBBBBBBBBBBBDDDDDDD         MMMMMMMMM    M       7M22M7M22M7M22M7M22M7M22M7        9K9KDDK9K9                         B           B"+cr
+	mapd+="    E E L L E  L  E   H H  G  H  GG G H   G G G G G          CBBBBBBBBBC       BBBBBBBBBBBBBBMMMMMMD  JJ     MMMMMMMMM   111      7M22M7M22M7M22M7M22M7M22M7     9OO9K9KDDK9K9OO9                      KMKKKKMKKKKMK"+cr
+	mapd+="MM  EEE LL  EE L  E   HHH  G  HH G GG HH  G G G G GGG     9CCCB292 292BCCC9     DDDDDDDDDDDDDMMMMMMD         MMMMMMMMM  1M1M1 JJ  7MMMM7MMMM7MMMM7MMMM7MMMM7 99  9BBBBBBBBBBBBBB9       FFFF           KMKKKKMKKKKMK"+cr
+	mapd+="    E E L L E  L  E   H H  G  H  G  G H     G G G   G     D99999D2 2D99999D JJ  DMMMDMMMDMMMDMMMMMMD         MMMMMMMMM  1 1 1     77777777777777777777777777     9BBB99999999BBB9O     FFFFFF         KKMKKKKMKKKKMK"+cr
+	mapd+="    E E LL  EE LL EE  H H  G  HH G  G HH    G GGG GGG     DDDDDDDBBBDDDDDDD     DMMMDMMMDMMMDMCMCMCD     JJ  MMMMMMMMM  11111     7KKKK7KKKK7M  M7KKKK7KKKK7     9BB9999999999BB9O      9  9          KKO9999M9999OK"+cr
+	mapd+="                                                          D22222D   D22222D JJ  DDDDDDDDDDDDDMCMCMCD  C C C   MM   MM  M11M11MJJ  7M22M7M22M7    7M22M7M22M7 99  9B992999999299B9O      9  9       99   9KKK999KKK9 "+cr
+	mapd+="MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM          D     D   D     D     DMMMDMMMDMMMDCCCCCCD  C C C   KK   KK  M11M11M    7M22M7M22M7    7M22M7M22M7     9B99299  99299B9O O    O  O    O       9K2K9 9K2K9 "+cr
+	mapd+="                                                                    D     D                 DBBBBBBBB C C C   DD   DD  BBBBBBB                   7MMMM7MMMM7              99999B9B OOOOO9  9OOOOO       9KKK9 9KKK9 "+cr
+	mapd+="                                                      6666AKKKKKA666AKKKKKA66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666AA9AAB666666"+cr
+	mapd+="555555555555555555555555555555555555555555555555556666BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB55555555BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB  9  B555555"+cr
+	mapd+="555555555555555555555555555555555555555555555555AAAAAALLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL55555555LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLB  9BBB555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555BBB9  B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555AAAAAAAAAAAAAAAAAAAAAAAAAAAAA555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555AAAAAAAAAAAAAAAAAAAAAAAAAAA55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9BBB555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555BBB9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9BBB555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555BBB9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555B  9BBB555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555             55555 55B  9  B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555                         555    B  9  B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555                            555    BBB9  B555555"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555                                 55          B555555"+cr
+	mapd+="55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555                             OO   OO            BBB555555"+cr
+	mapd+="55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555                               9DDD9AAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555                                D9BBB9AAAAAAAAAAAAAAAAAAAAAAAAAAA"+cr
+	mapd+="5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555            CCCC                 DD9BBB9AAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555BBBBBBBBBBBBBBBBBBBBBBBBBB                 CCCCCC    B          DDD9BBB9AAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555BBBBBBBBBBBBBBBBBBBBBBBBBB                    9     BDB        999999999AAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB55555555555555555BBBBBBBBBBBBBBBBBBBBBBBBBB                    9    B9B9B      D9BBB9BBB9AAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                                       BBBBBB        BB        BB                 555555555555555            BB          BB                    9     9D9      DD9BBB9BBB9AAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                                       BBBBBB        BB        BB                    5555555                 BB          BB                   99     9D9  GG DDD9BBB9BBB9AAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                                                       BBBBBB        BB        BB                     55555                  BB          BBO                 6666666666666666AAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="                          BBBB              999        BBBBBB        BB        BB         CCC          555           MMM     BB          BB9               66AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="            O O O O O    BBBBBB                        BBBBBB        BB        BB  CCCC  CCCCC         555        K  MMM  K         L                    66AAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="            999999999   BBBBBBBB               LL      BBBBBB   LL   BB   LL   BB CCCCCC   9           555        KK OOO KK      GG L 9        EEEEEE  66AAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="            9KKKKKKK9    9KKKK9               LPPL     BBBBBB  L  L  BB  L  L  BB   9      9          5555      6666666666666666666666666666666DDDDDD66AAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="        77  9OOOKOOO9    9OOOO9          999  LPPL             L  L      L  L       9      9         666666699BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="            9KKKKKKK9    9KKKK9               LPPL             L  L      L  L       9      9     66  BBBBBBB  BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="        66699999999999666AAAAAA999             LL               LL        LL       99     99   66AA           BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="      66AAAAAAAAAAAAAAAAAAAAAAAAA1111111111166666666666BBBBBBBBBBBBBBBBBBBBBBBBBB66666666666666AAAA           BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="    66AAAAAAAAABBBBBBBBBAAAAAAAAA66111111166AAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="  66AAAAAAAABBBBBBBBBBBBBBBBAAAAAAA6611166AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+	mapd+="66AAAAABBBBBBBBBBBBBBBBBBBBBBBBBAAAAA666AAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"+cr
+
+	myspd=4:grav=16:yuuyo=0:water=1:ClearText="クリアおめでとうございます。エピローグへどうぞ～"
+	colors(0)=2:colors(1)=64:colors(2)=64
+	goto *Load2
+
+*Load2
+	noteget s1,0
+	mapsizex=strlen(s1):if mapsizex<mx : mapsizex=mx
+	mapsizey=notemax
+	vmaxx=mapsizex*sx
+	vmaxy=mapsizey*sy
+	viewx=0:viewy=vmaxy-wy
+	vbasey=viewy
+	vbasex=vmaxx-wx
+
+	;	マップの初期化
+	//---項目名-----当たり判定-----地面判定
+	//00 空白			F			F
+	//01 水 			F			F
+	//02 ガラス			F			F
+	//03 集めるもの     F			T
+	//04 毒				T			T
+	//05 熔岩			T			T
+	//06 地面			F			F
+	//07 白い石			T			F
+	//08 炎 			T			F
+	//09 木				F			T
+	//0A 土2			F			T
+	//0B 石				F			T
+	//0C 葉
+	//0D 茶色
+	//0E 赤
+	//0F オレンジ
+	//0G 黄色
+	//0H 緑
+	//0I 水色
+	//0J 青
+	//0K 肌色
+	//0L 黒
+	//0M 白
+	//0N 砲台
+	//0O 柵
+	coinmax=0
+	dim map,mapsizex,mapsizey
+	y=0
+	repeat mapsizey
+		noteget s1,cnt
+		repeat mapsizex
+			s2=strmid(s1,cnt,1)	; 1文字だけを取り出す
+			a=0
+			if s2!=" " : a=6
+			if s2="+" : a=4
+			if s2="*" : coinmax=coinmax+1 : a=3
+			if s2="1" : a=1
+			if s2="2" : a=2
+			if s2="3" : a=3
+			if s2="4" : a=4
+			if s2="5" : a=5
+			if s2="6" : a=6
+			if s2="7" : a=7
+			if s2="8" : a=8
+			if s2="9" : a=9
+			if s2="A" : a=10
+			if s2="B" : a=11
+			if s2="C" : a=12
+			if s2="D" : a=13
+			if s2="E" : a=14
+			if s2="F" : a=15
+			if s2="G" : a=16
+			if s2="H" : a=17
+			if s2="I" : a=18
+			if s2="J" : a=19
+			if s2="K" : a=20
+			if s2="L" : a=21
+			if s2="M" : a=22
+			if s2="N" : a=23
+			if s2="O" : a=24
+			if s2="P" : a=25
+			map(cnt,y)=a		; マップデータを代入する
+		loop
+		y=y+1
+	loop
+
+	;	プレイヤーの初期化
+	coin=0		; コインの数
+
+	myflag=0
+	myani=0:mydir=0
+	myjmp=0:mygrv=0
+	px=0:py=vmaxy-sy-mysizey
+	font msgothic,16
+
+	mmstop
+
+*main
+	;	メインループ
+	redraw 0
+	gosub *drawbg		; 奥の背景を描画
+	gosub *drawmap		; マップを描画
+	gosub *mymove		; プレイヤーの移動
+	color 255,255,255:pos 0,0:font "",30
+	mes "コース "+MapTitle+" [World"+MapScore+"]\n":font "",18
+	mes "回収した林檎:"+coin+"/"+coinmax+"\nあと"+str(coinmax-yuuyo-coin)+"個とったらクリア"
+	mes "["+viewx+","+viewy+"]"
+	IF MapScore=4{
+		IF VIEWY>700{colors(0)=50:colors(1)=50:colors(2)=50}else{colors(0)=86:colors(1)=233:colors(2)=233}
+		}
+	IF MapScore=8{
+		IF VIEWX<3000 AND VIEWY>700{colors(0)=163:colors(1)=163:colors(2)=163}else:IF VIEWX>2999 AND VIEWY>700{colors(0)=163:colors(1)=237:colors(2)=150}else{colors(0)=86:colors(1)=233:colors(2)=233}
+		}
+
+	if IsNeedPad=0{
+	pos 40,320:celput 5,0,0.75,0.75,0
+	pos 160,320:celput 4,0,0.75,0.75,0
+	pos 460,320:celput 6,0,0.75,0.75,0
+	
+	IsPress4 = "F" : IsPress5 = "F" : IsPress6 = "F"
+		mtlist touch_id
+		touch_cnt = stat
+
+		repeat touch_cnt
+			dim t_info, 4
+			mtinfo t_info, touch_id(cnt)
+			if t_info(0) == 1 {
+				if (t_info(1) >= area_a(0)) && (t_info(1) <= area_a(2)) && (t_info(2) >= area_a(1)) && (t_info(2) <= area_a(3)) { 
+					IsPress6 = "T"
+				}else{
+					IsPress6 = "F"
+				}
+
+				if (t_info(1) >= area_b(0)) && (t_info(1) <= area_b(2)) && (t_info(2) >= area_b(1)) && (t_info(2) <= area_b(3)) { 
+					IsPress5 = "T"
+				}else{
+					IsPress5 = "F"
+				}
+
+				if (t_info(1) >= area_c(0)) && (t_info(1) <= area_c(2)) && (t_info(2) >= area_c(1)) && (t_info(2) <= area_c(3)) { 
+					IsPress4 = "T"
+				}else{
+					IsPress4 = "F"
+				}
+			}
+		loop
+}else:if IsNeedPad=1{
+		mtlist tid: mtinfo p,tid: tx=ixy(p(1)): ty=ixy(p(2))
+		if p { if tf { tf=2: tc++ } else { tf=1: tx1=tx: ty1=ty }}
+		else { if tf { if tf!3 { tf=3 } else { tf=0: tc=0 }}}
+
+		// 移動操作を判定
+		if tf {
+			x+=double((tx1<tx)-(tx1>tx)) 
+			y+=double((ty1<ty)-(ty1>ty))
+			if double((tx1<tx)-(tx1>tx))<0{IsPress5=0:IsPress4=1}else:if double((tx1<tx)-(tx1>tx))>0{IsPress5=1:IsPress4=0}else{IsPress5=1:IsPress4=1}
+			if double((ty1<ty)-(ty1>ty))<0{IsPress6=0}else{IsPress6=1}
+		}
+
+		if tf=0{IsPress6=1:IsPress5=1:IsPress4=1}
+
+		// ジャンプ操作の判定
+		if btncnt {
+			if jump=0 & btncnt=1 { jump=1: jy=y: jsp=20}
+		}
+		// ジャンプ中の処理
+		if jump {
+			y-=jsp: jsp-=(2-(btncnt>0))
+			if jy<=y { jump=0: y=jy }
+		}
+
+		// 描画
+		if tf=2{font "",30:color 255,0,0: locate tx1-4,ty1-4: mes "↑": locate tx1-24,ty1-4: mes "←": locate tx1+16,ty1-4: mes "→"}	// 方向操作起点
+		await 16
+}
+	redraw 1
+
+	if myflag>0 : goto *main2
+	if coin>=coinmax-yuuyo : goto *main3
+
+	await 16
+	goto *main
+
+
+*main2
+	;	プレイヤーやられ
+	mmstop
+	mmplay 1
+	redraw 0
+	gosub *drawbg
+	gosub *drawmap
+	gosub *mymove
+
+	font msgothic,40,1
+	pos 150,200
+	color 255,255,255
+	mes "失敗..."
+	font "",16:mes "\n\n\n放送局「死んだ回を放送はできませんね」"
+	redraw 1
+	await 1000
+	goto *gtitle
+
+
+*main3
+	;	クリア
+	if MapScore=8{Epi=1}
+	pos 40,330:objsize 280,100:button "Twitterに共有",*twitter
+	pos 320,330:objsize 280,100:button "コース一覧へ戻る",*gtitle
+	repeat 40
+	redraw 0
+	gosub *drawbg
+	gosub *drawmap
+	gosub *mymove
+
+	font msgothic,40,1
+	pos 50,20
+	color 255,255,255
+	mes "クリア"
+	pos 20,100:font "",24
+	mes "コース "+MapTitle+" [World"+MapScore+"]"
+	font "",16:mes "\n\n\n放送局「"+ClearText+"」"
+
+	redraw 1
+	if cnt=16 : mmstop : mmplay 0
+	await 16
+	loop
+	stop
+
+*twitter
+	exec "https://x.com/intent/post?text=%E3%82%84%E3%81%A3%E3%81%9F%EF%BC%81%20https://AbellAte.net/Gameの「AbellApple」の"+MapTitle+" [World"+MapScore+"]"+"%E3%82%92%E3%82%AF%E3%83%AA%E3%82%A2%E3%81%97%E3%81%9F%EF%BC%81",16
+	stop
+
+*mymove
+	;	プレイヤー操作
+	stick key,15
+	x=px:y=py
+	myrun=0
+
+	if myflag!=0 {
+		mydir=32
+		myflag=myflag+1
+		key=0
+	}
+	
+	if IsPress5="T" and IsNeedPad!=2 {mydir=12 : myrun=1 : x=x-myspd}
+	if IsPress4="T" and IsNeedPad!=2 {mydir=28 : myrun=1 : x=x+myspd}
+	
+	if key&1 : mydir=12 : myrun=1 : x=x-myspd
+	if key&4 : mydir=28 : myrun=1 : x=x+myspd
+	if x<0 : x=0
+	if x>=(vmaxx-mysizex) : x=px
+
+	if myrun>0 {
+		i=mysizey-1 : gosub *myarea
+		if a>0 {
+			gosub *chkitem
+			x=px
+		}
+	}
+
+	if myjmp>0 : goto *mymove3
+
+	;	通常時
+	
+	if key&16 {IsPress6="OK"}
+	if IsPress6="T" and myjmp!=1 and IsNeedPad=0 : IsPress6="OK"
+	if IsPress6="OK" : myjmp=1 : mygrv=-grav : IsPress6="" :mmplay 3 : goto *mymove
+
+	i=mysizey : gosub *myarea
+	if a=0 : myjmp=1 : mygrv=8 : goto *mymove3
+
+	goto *mymove2
+
+*mymove3
+	if water=0{myjmp=1:mygrv=-grav}
+	;	ジャンプ中
+	y=y+mygrv
+	mygrv=mygrv+1
+
+	if mygrv<0 : goto *mymove2
+	if mygrv>16 : mygrv=16
+
+	i=mysizey : gosub *myarea
+	if a>0 {
+		mmplay 2
+		gosub *chkitem
+		y=(mapy*sy)-mysizey : myjmp=0
+		mydir=0
+	}
+	if y>=vmaxy : gosub *mydead
+
+*mymove2
+	;	プレイヤー描画
+	px=x:py=y
+
+	a=mydir
+	if myrun>0 {
+		myani=myani+1
+		a+=(myani/4)\4
+	}
+
+	gmode 2,mysizex,mysizey
+	x=px-viewx:y=py-viewy
+	pos x,y:celput 3,a
+
+	i=0
+	if x<240 : i=(x-240)/40
+	if x>(wx-420) : i=(x-(wx-420))/40
+	viewx=limit( viewx+i, 0, vbasex )
+
+	i=0
+	if y<160 : i=(y-160)/40
+	if y>(wy-240) : i=(y-(wy-240))/40
+	viewy=limit( viewy+i, 0, vbasey )
+
+	return
+
+*myarea
+	;	自分の足元マップを調べる
+	mapx=(x+10)/sx
+	mapy=(y+i)/sy
+	if a=23{mygrv=-50}
+	if mapy>=mapsizey : a=0 : return
+	if mapy<0 : a=0 : return
+	a=map(mapx,mapy)
+	if a>=hitparts : return		; 接触のあるパーツID
+	mapx=(x+53)/sx
+	a=map(mapx,mapy)
+	if a>=hitparts : return		; 接触のあるパーツID
+	a=0
+	return
+
+*chkitem
+	;	障害物・アイテムのチェック
+	if a=3 {
+		coin=coin+1
+		map(mapx,mapy)=0
+		mmplay 4
+		return
+	}
+	if a<6 {
+		gosub *mydead
+	}
+	return
+
+*mydead
+	;	やられフラグを立てる
+	myflag=1
+	return
+
+*drawbg
+	;	背景描画
+	startx=-viewx\sx	; マップの表示開始X座標
+	starty=-viewy\sy	; マップの表示開始Y座標
+	ofsx=viewx/sx		; マップデータの参照開始X座標
+	ofsy=viewy/sy		; マップデータの参照開始Y座標
+
+	;	奥の背景も少しスクロールさせる
+	gmode 0,wx,wy
+	x=0:y=viewy*(bgmaxy-wy)/vbasey
+	pos 0,0:color colors(0),colors(1),colors(2):boxf:color 0,0,0
+	return
+
+*drawmap
+	;	マップ描画
+	y=0
+	drawx=mx:if startx!=0 : drawx=drawx+1
+	drawy=my:if starty!=0 : drawy=drawy+1
+
+	gmode 2,sx,sy
+	repeat drawy
+		x=0
+		repeat drawx
+			a=map(ofsx+x,ofsy+y)
+			if a>0 : pos x*sx+startx,y*sy+starty:celput 2,a
+			x=x+1
+		loop
+		y=y+1
+	loop
+	return
+
+*error
+	mmstop
+	dialog ""+wparam+"番エラーが"+lparam+"行目で発生し、アプリは停止しました。\n\nF5キーまたはブラウザのボタンで読み込み直してください。\nABATBelieverに報告してくださると助かります。"
+	stop
+
+*opening
+	clrobj
+	font "",12:
+	redraw 0
+	color 0,128,128:boxf
+	color 255,255,255
+	pos 10,10
+	mes "https://www.youtube.com/watch?v=urMnCMDAL4o&list=PL_qz5AubFuzrGy-ZIdocdjJJPzMH_uCYq&index=4" 
+	mes "【マインクラフト】 誰でも絶対に引っかかるトラップがやばすぎる！？トラップハウスとは・・・。 \n【ゆっくり実況】【MOD紹介】"
+	font "",16
+	mes "\nという動画を覚えていますか?"
+	mes "今回はその後日譚がストーリーです"
+	mes "アテネ(敬称略)が家を爆破したドッキリの後、\n「アベルの大好物」を求めてアベルがトラップハウスを探索する茶番回でした。"
+	mes "\n	さて、このトラップハウスの回にマイクラ放送局が目を付けたようで"
+	mes "放送局が色々な世界観を意識した世界を作ったそうです。"
+	mes "\nぜひぜひクリアして、視聴率で儲けてマージンをアテネちゃんに渡しましょう！"
+	objsize 250,50:button "戻る",*gtitle
+	button "動画を見る",*executeYoutube
+	redraw 1
+	stop
+
+*epis
+	clrobj
+	font "",30
+	redraw 0
+	color 0,128,128:boxf
+	color 255,255,255
+	pos 10,10
+	mes "祝！　クリア"
+	font "",16
+	mes "\n\n\n放送局員ナーガ「クリアおめでとうございます」"
+	mes "アテネ「(結局アベルの大好物って何想定してたんですか?)」"
+	mes "ナーガ「(知らん)このシリーズを通じて思い返した二人の思い出...とか?」"
+	mes "アテネ「それ食べ物ではないよね...()アベルはどう思ってるんだろ?」"
+	mes "アベル「思い出思い出せて楽しかった～」"
+	mes "アテネ「(なんか幸せそうだしいっか。)」"
+	mes "."
+	mes "つづく?"
+	objsize 250,50:button "戻る",*gtitle
+	mes "アベルスキン:シャドール・ヒラメキ(Twitter,2019/7/27,使用許諾済)"
+	mes "音源:HSP3.6サンプル etc"
+	mes "ジェスジャー操作システム:窓月らら"
+	mes "テクスチャ、コース設計:ABATBeliever"
+	mes "デバッグ:Twitter・Discord・LINE有志"
+	mes "Thank you for playing this Game! 2024 https://abellate.net "
+	redraw 1
+	stop
+	
+*executeYoutube
+exec "https://www.youtube.com/watch?v=urMnCMDAL4o&list=PL_qz5AubFuzrGy-ZIdocdjJJPzMH_uCYq&index=4",16
+stop
+	
+#defcfunc dxy double _p1
+	return int(_p1*dm)
+
+// 内部座標に変換
+#defcfunc ixy double _p1
+	return int(_p1/dm)
+
+// 位置指定
+#deffunc locate int _x, int _y
+	pos dxy(_x),dxy(_y)
+	return
