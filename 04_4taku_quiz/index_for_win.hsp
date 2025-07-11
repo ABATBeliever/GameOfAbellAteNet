@@ -1,0 +1,149 @@
+#include "hsp3dish.as"
+#pack "bak.png"
+#pack "app.wav"
+screen 0,800,600
+celload "bak.png",1:title "Load PNG"
+mmload "app.wav",2,1:title "Load WAV"
+
+redraw 0
+clrobj:pos 0,0:celput 1,0,1,1,0
+
+color 0,128,128
+font "",30:pos 20,5:mes "4択クイズ   "
+
+color 0,0,0
+pos 135,60:font "",40:mes "カスタム!   "
+pos 200,7:font "",15:mes "使用音源 「Pico pico」by Make a field Music   "
+pos 200,20:mes "https://dova-s.jp/bgm/play11964.html   "
+pos 600,10:mes "https://AbellAte.net"
+pos 160,200:font "",60:mes "アベアテ4択クイズ   "
+pos 250,350:objsize 300,50:button "開始   ",*init
+Count=0
+redraw 1
+title "4択クイズ - v1.13"
+stop
+
+*init
+mmstop
+Count=0
+randomize
+notesel buffers
+title "今エラーになったなら、dictionary.txtがないです"
+noteload "dictionary.txt"
+repeat notemax
+	noteget tmp,cnt
+	dictionaryVar(cnt)=tmp
+loop
+QuestionNumber=0
+mmplay 2
+goto *GetQuestion
+
+*GetQuestion
+clrobj
+Text=rnd(length(dictionaryVar))
+title "4択クイズ - v1.13 - No."+str(Text)
+if QuestionNumber=length(dictionaryVar){goto *Summery}
+if dictionaryVar(Text)="Already"{goto *GetQuestion}
+QuestionNumber++
+sdim s,6
+i=0
+repeat
+    getstr buf,dictionaryVar(Text),i,','
+    if buf="":break
+    i+=strsize
+    s(cnt)=buf
+loop
+
+redraw 0
+pos 0,0:celput 1,0,1,1,0:pos 0,0
+
+pos 135,60:font "",40:mes "問No."+str(Text)+"   "
+pos 100,130:font "",20:mes s(0)
+pos 500,160:font "",20:mes "クイズ作者 "+s(1)+" "
+pos 130,220:font "",25:mes "1:"+s(2)
+pos 130,270:font "",25:mes "2:"+s(3)
+pos 130,320:font "",25:mes "3:"+s(4)
+pos 130,370:font "",25:mes "4:"+s(5)
+
+objsize 100,100:pos 105,470:button "1",*Press1
+objsize 100,100:pos 255,470:button "2",*Press2
+objsize 100,100:pos 405,470:button "3",*Press3
+objsize 100,100:pos 555,470:button "4",*Press4
+
+gosub *Score
+redraw 1
+
+stop
+
+*Press1
+MyKey=1
+goto *Sum
+
+*Press2
+MyKey=2
+goto *Sum
+
+*Press3
+MyKey=3
+goto *Sum
+
+*Press4
+MyKey=4
+goto *Sum
+
+*Sum
+clrobj
+redraw 0
+pos 0,0:celput 1,0,1,1,0
+pos 135,60:font "",40:mes "答No."+str(Text)+"   "
+pos 100,130:font "",20:mes s(0)
+pos 500,160:font "",20:mes "クイズ作者 "+s(1)+" "
+pos 130,220:font "",25:mes "1:"+s(2)
+pos 130,270:font "",25:mes "2:"+s(3)
+pos 130,320:font "",25:mes "3:"+s(4)
+pos 130,370:font "",25:mes "4:"+s(5)
+pos 300,490:font "",50:mes "正解:"+s(6)+"   "
+dictionaryVar(Text)="Already"
+if Mykey=int(s(6)){
+	pos 430,50:font "",300:color 255,0,0:mes "〇  ":Count++
+	}else{
+	pos 430,50:font "",300:color 0,0,255:mes "×  "
+	}
+gosub *Score
+redraw 1
+repeat 150
+	await 10
+loop
+goto *GetQuestion
+
+*Score
+color 0,128,128
+font "",30
+pos 20,5:mes "4択クイズ   "
+pos 200,5:mes ""+QuestionNumber+"/"+length(dictionaryVar)
+pos 650,5:mes "正解数:"+Count+"   "
+color 0,0,0
+return
+
+*Summery
+redraw 0
+clrobj
+pos 0,0:celput 1,0,1,1,0
+
+color 0,128,128
+font "",30
+pos 20,5:mes "結果発表！   "
+
+color 0,0,0
+pos 135,60:font "",40:mes "問題終   "
+pos 300,100:font "",40:mes "結果発表   "
+pos 200,220:font "",40:mes "問題数 "+str(length(dictionaryVar))+"   "
+pos 200,280:mes "正解数 "+str(Count)+"   "
+pos 250,350:objsize 150,50:button "もういちど   ",*init
+pos 400,350:objsize 150,50:button "Tweet   ",*tweet
+redraw 1
+stop
+
+*tweet
+exec "https://x.com/intent/post?text=https://abellate.net/Game/の4択クイズで"+length(dictionaryVar)+"問中"+Count+"問正解したよ！",16
+stop
